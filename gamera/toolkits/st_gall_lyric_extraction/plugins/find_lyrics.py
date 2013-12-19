@@ -188,7 +188,10 @@ def _find_blackest_lines( img, horizontal_projections, minimum_y_threshold,
 
 class extract_lyrics(PluginFunction):
   """
-  Insert documentation HERE!!!
+  Takes in a binarised image and attempts to remove lyrics by processing horizontal
+  projections (see find_blackest_lines).  Whatever lines are found from find_blackest_lines
+  are superimposed onto the connected components of the image.  Those CCs are then removed
+  from the binarised image.
 
   Parameters:
 
