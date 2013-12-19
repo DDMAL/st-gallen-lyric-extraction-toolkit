@@ -186,6 +186,51 @@ def _find_blackest_lines( img, horizontal_projections, minimum_y_threshold,
 
   return blackest_lines
 
+class extract_lyrics(PluginFunction):
+  """
+  Insert documentation HERE!!!
+
+  Parameters:
+
+    minimum_y_threshold: the minimum value that may be considered a local peak
+    in the horizontal projection.
+
+    num_searches: the number of searches to do around each local peak
+
+    negative_bound: how far below the local peak to start the line search (this
+    value is positive! so the value of negative_bound=10 will start searching 10
+    pixels below the peak-point (or -10 pixels. To make this even more
+    confusing, the negative direction is actually upward when talking about
+    images, but you already knew this from reading the Gamera documentation).
+
+    positive_bound: how far above the local peak to start the line search
+
+    delta: see the delta parameter for the peakdet function above
+  """
+  pure_python = 1
+  return_type = ImageType([ONEBIT], "output")
+  self_type = ImageType([ONEBIT])
+  args = Args([Int("minimum_y_threshold", default=10),
+               Int("num_searches", default=4),
+               Int("negative_bound", default=10),
+               Int("postive_bound", default=10)])
+
+  def __call__(image, minimum_y_threshold=10, num_searches=4, negative_bound=10, postive_bound=10):
+      ccs = image.cc_analysis()
+      horizontal_projections = image.projection_rows()
+      lines = image.find_blackest_lines( horizontal_projections,
+                                          minimum_y_threshold,
+                                          num_searches,
+                                          negative_bound,
+                                          postive_bound )
+      mb_lines = [find_lyrics.slope_intercept_from_points(p0,p1) for p0, p1 in lines]
+      newccs = find_lyrics.remove_ccs_intersected_by_lines(ccs, mb_lines)
+      for cc in set(ccs) - set(newccs):
+          cc.fill_white()
+      return image
+
+  __call__ = staticmethod(__call__)
+
 
 class find_blackest_lines(PluginFunction):
   """
